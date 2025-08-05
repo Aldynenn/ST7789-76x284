@@ -1,94 +1,67 @@
 #include <TFT_eSPI.h>
+
+#include <impact20pt7b.h>
+
+#define IMPACT20 &impact20pt7b
+
+
 TFT_eSPI tft = TFT_eSPI();
 
-uint8_t rotation;
-uint16_t w;
-uint16_t h;
+#define HEIGHT TFT_WIDTH
+#define WIDTH TFT_HEIGHT
 
-void changeRotation(uint8_t rotation)
-{
-  tft.setRotation(rotation);
+TFT_eSprite stats = TFT_eSprite(&tft);
 
-  if (rotation == 0 || rotation == 2)
-  {
-    w = TFT_WIDTH;
-    h = TFT_HEIGHT;
-  }
-  else if (rotation == 1 || rotation == 3)
-  {
-    w = TFT_HEIGHT;
-    h = TFT_WIDTH;
-  }
-  tft.setRotation(rotation);
-}
+static const unsigned char PROGMEM image_arrow_curved_down_right_bits[] = {0x20,0x40,0x40,0xc0,0xe8,0x78,0x38,0x78};
+static const unsigned char PROGMEM image_arrow_curved_left_down_bits[] = {0x18,0xbe,0xf1,0xe0,0xf0};
+static const unsigned char PROGMEM image_arrow_curved_right_up_bits[] = {0x0f,0x07,0x8f,0x7d,0x18};
+static const unsigned char PROGMEM image_arrow_curved_up_left_bits[] = {0xf0,0xe0,0xf0,0xb8,0x18,0x10,0x10,0x20};
 
-void setup(void)
-{
-  rotation = 0;
-
+void setup(void) {
   tft.init();
   tft.invertDisplay(false);
-  changeRotation(rotation);
-  tft.setTextFont(2);
+  tft.setRotation(1);
+  pinMode(15, OUTPUT);
+  analogWrite(15, 64); // Turn on backlight
+  
+  tft.fillScreen(TFT_BLACK);
+
+  
+  stats.createSprite(284, 76, 1);
+  stats.setTextColor(TFT_WHITE, TFT_BLACK);
+  stats.setTextSize(1);
 }
+// int state = 0;
+void loop() {
+  unsigned long loop_start_time = micros();
+  // stats.fillSprite(TFT_BLACK);
+  // stats.setCursor(0, 38);
+  // stats.print("Started " + String(millis()) + " ms ago");
 
-void drawSpec(void)
-{
-  tft.setCursor(4, 20);
-  tft.print("ST7789");
-  tft.setCursor(4, 38);
-  tft.print("76x284");
-  tft.setCursor(4, 56);
-  tft.print("Rot " + String(rotation));
-}
+  // stats.fillSprite(TFT_BLACK);
+  // stats.setTextColor(0xFFFF);
+  // stats.setTextSize(1);
+  // stats.drawString("-- This is a test --", WIDTH/2, HEIGHT/2);
+  // stats.drawRect(0, 0, 284, 76, 0xFFFF);
+  // stats.fillEllipse(268, 15, 11, 11, 0xFFFF);
+  // stats.drawEllipse(15, 15, 11, 11, 0xFFFF);
+  // stats.drawLine(4, 70, 280, 70, 0xFFFF);
 
-void loop()
-{
-  tft.fillScreen(TFT_CYAN);
-  tft.setCursor(4, 2);
-  tft.print("Cyan");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
+  
+  stats.fillSprite(TFT_BLACK);
 
-  tft.fillScreen(TFT_YELLOW);
-  tft.setCursor(4, 2);
-  tft.print("Yellow");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
+  stats.drawBitmap(108, 19, image_arrow_curved_down_right_bits, 5, 8, 0xFFFF);
+  stats.drawBitmap(115, 12, image_arrow_curved_left_down_bits, 8, 5, 0xFFFF);
+  stats.drawBitmap(115, 29, image_arrow_curved_right_up_bits, 8, 5, 0xFFFF);
+  stats.drawBitmap(125, 19, image_arrow_curved_up_left_bits, 5, 8, 0xFFFF);
 
-  tft.fillScreen(TFT_MAGENTA);
-  tft.setCursor(4, 2);
-  tft.print("Magenta");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
+  stats.setTextDatum(MC_DATUM);
+  stats.setFreeFont(IMPACT20);
+  stats.drawString(String(millis()), WIDTH/2, HEIGHT/3*2);
+  
+  stats.setTextDatum(TL_DATUM);
+  stats.setFreeFont();
+  stats.drawString("Loop duration: " + String(micros() - loop_start_time) + " us", 5, 5);
 
-  tft.fillRectHGradient(0, 0, w, h, TFT_RED, TFT_BLUE);
-  tft.setCursor(4, 2);
-  tft.print("Red-Blue");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
-
-  tft.fillRectHGradient(0, 0, w, h, TFT_BLUE, TFT_GREEN);
-  tft.setCursor(4, 2);
-  tft.print("Blue-Green");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
-
-  tft.fillRectHGradient(0, 0, w, h, TFT_GREEN, TFT_RED);
-  tft.setCursor(4, 2);
-  tft.print("Green-Red");
-  drawSpec();
-  tft.drawRect(0, 0, w, h, TFT_WHITE);
-  delay(2500);
-
-  if(++rotation == 4) {
-    rotation = 0;
-  }
-
-  changeRotation(rotation);
+  stats.pushSprite(0, 0);
 }
