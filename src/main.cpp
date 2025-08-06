@@ -4,7 +4,6 @@
 
 #define IMPACT20 &impact20pt7b
 
-
 TFT_eSPI tft = TFT_eSPI();
 
 #define HEIGHT TFT_WIDTH
@@ -18,50 +17,57 @@ static const unsigned char PROGMEM image_arrow_curved_right_up_bits[] = {0x0f,0x
 static const unsigned char PROGMEM image_arrow_curved_up_left_bits[] = {0xf0,0xe0,0xf0,0xb8,0x18,0x10,0x10,0x20};
 
 void setup(void) {
+  Serial.begin(115200);
+  Serial.println("Starting setup...");
+  
+  // Add current task to watchdog with default timeout
+  
+  Serial.println("Initializing display...");
   tft.init();
+  
   tft.invertDisplay(false);
   tft.setRotation(1);
-  pinMode(15, OUTPUT);
-  analogWrite(15, 64); // Turn on backlight
   
+  Serial.println("Setting up backlight...");
+  pinMode(9, OUTPUT);
+  analogWrite(9, 200); // Turn on backlight
+  
+  Serial.println("Filling screen black...");
   tft.fillScreen(TFT_BLACK);
 
-  
+  Serial.println("Creating sprite...");
   stats.createSprite(284, 76, 1);
   stats.setTextColor(TFT_WHITE, TFT_BLACK);
   stats.setTextSize(1);
+  
+  Serial.println("Setup complete!");
 }
-// int state = 0;
+
 void loop() {
+  
   unsigned long loop_start_time = micros();
-  // stats.fillSprite(TFT_BLACK);
-  // stats.setCursor(0, 38);
-  // stats.print("Started " + String(millis()) + " ms ago");
-
-  // stats.fillSprite(TFT_BLACK);
-  // stats.setTextColor(0xFFFF);
-  // stats.setTextSize(1);
-  // stats.drawString("-- This is a test --", WIDTH/2, HEIGHT/2);
-  // stats.drawRect(0, 0, 284, 76, 0xFFFF);
-  // stats.fillEllipse(268, 15, 11, 11, 0xFFFF);
-  // stats.drawEllipse(15, 15, 11, 11, 0xFFFF);
-  // stats.drawLine(4, 70, 280, 70, 0xFFFF);
-
   
   stats.fillSprite(TFT_BLACK);
 
+  // Draw arrows
   stats.drawBitmap(108, 19, image_arrow_curved_down_right_bits, 5, 8, 0xFFFF);
   stats.drawBitmap(115, 12, image_arrow_curved_left_down_bits, 8, 5, 0xFFFF);
   stats.drawBitmap(115, 29, image_arrow_curved_right_up_bits, 8, 5, 0xFFFF);
   stats.drawBitmap(125, 19, image_arrow_curved_up_left_bits, 5, 8, 0xFFFF);
 
+  // Draw main text with custom font
   stats.setTextDatum(MC_DATUM);
   stats.setFreeFont(IMPACT20);
   stats.drawString(String(millis()), WIDTH/2, HEIGHT/3*2);
   
+  // Draw performance info
   stats.setTextDatum(TL_DATUM);
   stats.setFreeFont();
-  stats.drawString("Loop duration: " + String(micros() - loop_start_time) + " us", 5, 5);
+  stats.drawString("Loop: " + String(micros() - loop_start_time) + "us", 5, 5);
 
   stats.pushSprite(0, 0);
+  
+  // Add small delay to prevent overwhelming the display
+  delay(50);  // 50ms delay for ~20 FPS
+  
 }
